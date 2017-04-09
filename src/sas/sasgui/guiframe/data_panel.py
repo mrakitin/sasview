@@ -114,6 +114,30 @@ class DataTreeCtrl(CT.CustomTreeCtrl):
         else:
             return 0
 
+    def Traverse(self, func, startNode):
+        """Apply 'func' to each node in a branch, beginning with 'startNode'. """
+        def TraverseAux(node, depth, func):
+            nc = self.GetChildrenCount(node, 0)
+            child, cookie = self.GetFirstChild(node)
+            # In wxPython 2.5.4, GetFirstChild only takes 1 argument
+            for i in xrange(nc):
+                func(child, depth)
+                TraverseAux(child, depth + 1, func)
+                child, cookie = self.GetNextChild(node, cookie)
+        func(startNode, 0)
+        TraverseAux(startNode, 1, func)
+
+    #TODO: Check if we actually need this function
+    def ItemIsChildOf(self, item1, item2):
+        ''' Tests if item1 is a child of item2, using the Traverse function '''
+        self.result = False
+        def test_func(node, depth):
+            if node == item1:
+                self.result = True
+
+        self.Traverse(test_func, item2)
+        return self.result
+
 
 class DataPanel(ScrolledPanel, PanelBase):
     """
@@ -190,6 +214,9 @@ class DataPanel(ScrolledPanel, PanelBase):
         self.Bind(wx.EVT_SHOW, self.on_close_page)
         if self.parent is not None:
             self.parent.Bind(EVT_DELETE_PLOTPANEL, self._on_delete_plot_panel)
+        self.tree_ctrl.Bind(wx.EVT_TREE_BEGIN_RDRAG, self.OnBeginRightDrag)
+        self.tree_ctrl.Bind(wx.EVT_TREE_BEGIN_DRAG, self.OnBeginLeftDrag)
+        self.tree_ctrl.Bind(wx.EVT_TREE_END_DRAG, self.OnEndDrag)
 
     def do_layout(self):
         """
@@ -250,14 +277,78 @@ class DataPanel(ScrolledPanel, PanelBase):
                             (self.selection_cbox, 0, wx.ALL, 5)])
         self.enable_selection()
 
-    def on_drag(self, evt):
-        # No evt.Allow() here, I won't use TreeCtrl's internal DND support
-        item = evt.GetItem()
-        if item == self.tree_ctrl.GetRootItem():
+    def OnBeginLeftDrag(self, event):
+        '''Allow drag-and-drop for leaf nodes.'''
+        event.Allow()
+        self.dragType = "left button"
+        self.dragItem = event.GetItem()
+
+    def OnBeginRightDrag(self, event):
+        '''Allow drag-and-drop for leaf nodes.'''
+        print "OnBeginDrag"
+        event.Allow()
+        self.dragType = "right button"
+        self.dragItem = event.GetItem()
+
+    def OnEndDrag(self, event):
+        print "OnEndDrag"
+        # If we dropped somewhere that isn't on top of an item, ignore the event
+        if event.GetItem().IsOk():
+            target = event.GetItem()
+        else:
             return
-        dropsrc = wx.DropSource(self)
-        # Populate dropsource
-        dropsrc.DoDragDrop(wx.Drag_AllowMove)
+
+        # Make sure this member exists.
+        try:
+            source = self.dragItem
+        except:
+            return
+
+        # Prevent the user from dropping an item inside of itself
+        if self.tree_ctrl.ItemIsChildOf(target, source):
+            print "the tree item can not be moved in to itself! "
+            self.tree_ctrl.Unselect()
+            return
+
+        # Get the target's parent's ID
+        targetparent = self.tree_ctrl.GetItemParent(target)
+        if not targetparent.IsOk():
+            targetparent = self.tree_ctrl.GetRootItem()
+
+        # One of the following methods of inserting will be called...
+        def MoveHere(event):
+            # Save + delete the source
+            save = self.tree_ctrl.SaveItemsToList(source)
+            self.tree_ctrl.Delete(source)
+            newitems = self.tree_ctrl.InsertItemsFromList(save, targetparent, target)
+            #self.tree.UnselectAll()
+            for item in newitems:
+                self.tree_ctrl.SelectItem(item)
+
+        def InsertInToThisGroup(event):
+            # Save + delete the source
+            save = self.tree_ctrl.SaveItemsToList(source)
+            self.tree_ctrl.Delete(source)
+            newitems = self.tree_ctrl.InsertItemsFromList(save, target)
+            #self.tree.UnselectAll()
+            for item in newitems:
+                self.tree_ctrl.SelectItem(item)
+        #---------------------------------------
+
+        #if self.tree_ctrl.GetPyData(target)["type"] == "container" and self.dragType == "right button":
+        if self.dragType == "right button":
+            menu = wx.Menu()
+            menu.Append(101, "Move to after this group", "")
+            menu.Append(102, "Insert into this group", "")
+            menu.UpdateUI()
+            menu.Bind(wx.EVT_MENU, MoveHere, id=101)
+            menu.Bind(wx.EVT_MENU, InsertInToThisGroup,id=102)
+            self.PopupMenu(menu)
+        else:
+            if self.tree_ctrl.IsExpanded(target):
+               InsertInToThisGroup(None)
+            else:
+               MoveHere(None)
 
     def _on_selection_type(self, event):
         """
