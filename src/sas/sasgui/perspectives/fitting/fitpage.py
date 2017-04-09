@@ -1886,6 +1886,7 @@ class FitPage(BasicPage):
             if is_data:
                 self.graph_id = self.data.group_id
                 flag = (data.id != self.data.id)
+        print("Data ID", self.data.id, data.id)
         self.data = data
         if check_data_validity(data):
             self.graph_id = data.group_id

@@ -3,9 +3,6 @@ Batch panel
 """
 import wx
 import wx.lib.newevent
-import math
-from sas.sasgui.guiframe.events import StatusEvent
-from sas.sasgui.guiframe.events import NewPlotEvent
 
 (Chi2UpdateEvent, EVT_CHI2_UPDATE) = wx.lib.newevent.NewEvent()
 _BOX_WIDTH = 76
@@ -13,8 +10,6 @@ _DATA_BOX_WIDTH = 300
 SMEAR_SIZE_L = 0.00
 SMEAR_SIZE_H = 0.00
 
-from sas.sasgui.perspectives.fitting.basepage import PageInfoEvent
-from sas.sascalc.data_util.qsmearing import smear_selection
 from sas.sasgui.perspectives.fitting.fitpage import FitPage
 from sas.sasgui.perspectives.fitting.fitpage import check_data_validity
 
@@ -53,6 +48,7 @@ class BatchFitPage(FitPage):
         text2.SetForegroundColour(wx.RED)
         sizer_data.Add(text2)
 
+        #We may need to change it to checkbox instead of combobox
         combo = wx.BoxSizer(wx.HORIZONTAL)
         self.dataSource = wx.ComboBox(self, wx.ID_ANY, style=wx.CB_READONLY)
         wx.EVT_COMBOBOX(self.dataSource, wx.ID_ANY, self.on_select_data)

@@ -250,6 +250,15 @@ class DataPanel(ScrolledPanel, PanelBase):
                             (self.selection_cbox, 0, wx.ALL, 5)])
         self.enable_selection()
 
+    def on_drag(self, evt):
+        # No evt.Allow() here, I won't use TreeCtrl's internal DND support
+        item = evt.GetItem()
+        if item == self.tree_ctrl.GetRootItem():
+            return
+        dropsrc = wx.DropSource(self)
+        # Populate dropsource
+        dropsrc.DoDragDrop(wx.Drag_AllowMove)
+
     def _on_selection_type(self, event):
         """
             Select data according to patterns
@@ -1216,6 +1225,15 @@ class DataPanel(ScrolledPanel, PanelBase):
         else:
             self.bt_append_plot.Enable()
             self.cb_plotpanel.Enable()
+
+    def enable_drag_and_drop(self):
+        """
+
+        :return:
+        """
+        self.tree_ctrl.SetDropTarget(MyDropTarget())
+        self.tree_ctrl.Bind(wx.EVT_TREE_BEGIN_DRAG, self.on_drag)
+        self.tree_ctrl.GetMainWindow().Bind(wx.EVT_MOUSE_CAPTURE_LOST, lambda x: None)
 
     def check_theory_to_freeze(self):
         """
