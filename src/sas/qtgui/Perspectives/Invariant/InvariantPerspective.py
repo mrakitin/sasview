@@ -407,7 +407,6 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
 
             return self.model
 
-
     def title(self):
         """ Perspective name """
         return "Invariant panel"
@@ -512,50 +511,29 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
 
     def updateFromGui(self):
         """ Update model when new user inputs """
+        possible_senders = ['txtBackgd', 'txtContrast', 'txtPorodCst',
+                            'txtScale', 'txtPowerLowQ', 'txtPowerHighQ',
+                            'txtNptsLowQ', 'txtNptsHighQ']
+        related_widgets = [WIDGETS.W_BACKGROUND, WIDGETS.W_CONTRAST,
+                           WIDGETS.W_POROD_CST, WIDGETS.W_SCALE,
+                           WIDGETS.W_LOWQ_POWER_VALUE, WIDGETS.W_HIGHQ_POWER_VALUE,
+                           WIDGETS.W_NPTS_LOWQ, WIDGETS.W_NPTS_HIGHQ]
+
+        related_internal_values = [self._background, self._contrast,
+                                   self._porod, self._scale,
+                                   self._low_power_value,
+                                   self._high_power_value,
+                                   self._low_points, self._high_points]
+
         item = QtGui.QStandardItem(self.sender().text())
-        if self.sender().objectName() == 'txtBackgd':
-            self._background = float(self.sender().text())
-            self.model.setItem(WIDGETS.W_BACKGROUND, item)
 
-        elif self.sender().objectName() == 'txtContrast':
-            self._contrast = float(self.sender().text())
-            self.model.setItem(WIDGETS.W_CONTRAST, item)
+        index_elt = possible_senders.index(self.sender().objectName())
+        print index_elt
 
-        elif self.sender().objectName() == 'txtPorodCst':
-            self._porod = float(self.sender().text())
-            self.model.setItem(WIDGETS.W_POROD_CST, item)
-
-        elif self.sender().objectName() == 'txtScale':
-            self._scale = float(self.sender().text())
-            self.model.setItem(WIDGETS.W_SCALE, item)
-
-        elif self.sender().objectName() == 'txtPowerLowQ':
-            self._low_power_value = int(self.sender().text())
-            self.model.setItem(WIDGETS.W_LOWQ_POWER_VALUE, item)
-
-        elif self.sender().objectName() == 'txtPowerHighQ':
-            self._high_power_value = int(self.sender().text())
-            self.model.setItem(WIDGETS.W_HIGHQ_POWER_VALUE, item)
-
-        elif self.sender().objectName() == 'txtNptsLowQ':
-            self._low_points = int(self.sender().text())
-            self.model.setItem(WIDGETS.W_NPTS_LOWQ, item)
-
-        elif self.sender().objectName() == 'txtNptsHighQ':
-            self._high_points = int(self.sender().text())
-            self.model.setItem(WIDGETS.W_NPTS_HIGHQ, item)
-
-
-        print 'before mapper'
-        print 'LOW POINTS', self._low_points
-        print 'txtPowerLowQ', self.txtPowerLowQ.text()
+        related_internal_values[index_elt] = float(self.sender().text())
+        self.model.setItem(related_widgets[index_elt], item)
 
         self.mapper.toFirst()
-
-        print 'after mapper'
-        print 'LOW POINTS', self._low_points
-        print 'txtPowerLowQ', self.txtPowerLowQ.text()
-
 
 
     def lowGuinierAndPowerToggle(self, toggle):
@@ -585,14 +563,6 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
             self.rbFixLowQ.setVisible(toggle)
 
             self.txtPowerLowQ.setEnabled(toggle and (not self._low_fit))
-
-        # self._low_guinier = toggle
-        # toggle = not toggle
-        # self.txtPowerLowQ.setEnabled(toggle)
-        # self.rbFitLowQ.toggled.connect(self.lowFitAndFixToggle)
-        # self.rbFitLowQ.setVisible(toggle)
-        # self.rbFixLowQ.setVisible(toggle)
-        # self.txtPowerLowQ.setEnabled(toggle and (not self._low_fit))
 
     def lowFitAndFixToggle(self, toggle):
         """ Fit and Fix radiobuttons cannot be selected at the same time """
