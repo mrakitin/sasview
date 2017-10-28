@@ -37,6 +37,8 @@ import sas.qtgui.Perspectives as Perspectives
 from sas.qtgui.Perspectives.Fitting.FittingPerspective import FittingWindow
 from sas.qtgui.MainWindow.DataExplorer import DataExplorerWindow
 
+from sas.qtgui.Perspectives.Invariant.InvariantPerspective import InvariantWindow
+
 class Acknowledgements(QtGui.QDialog, Ui_Acknowledgements):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
@@ -143,6 +145,8 @@ class GuiManager(object):
         self.GENSASCalculator = GenericScatteringCalculator(self)
         self.ResolutionCalculator = ResolutionCalculatorPanel(self)
         self.DataOperation = DataOperationUtilityPanel(self)
+
+        self.InvariantWindow = InvariantWindow(self)
 
     def statusBarSetup(self):
         """

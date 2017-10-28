@@ -55,6 +55,9 @@ from Perspectives.Fitting.UnitTesting import FittingUtilitiesTest
 from Perspectives.Fitting.UnitTesting import FitPageTest
 from Perspectives.Fitting.UnitTesting import FittingOptionsTest
 
+from Perspectives.Invariant.UnitTesting import InvariantDetailsTest
+from Perspectives.Invariant.UnitTesting import InvariantPerspectiveTest
+
 def suite():
     suites = (
         # Plotting
@@ -103,6 +106,9 @@ def suite():
         unittest.makeSuite(FittingUtilitiesTest.FittingUtilitiesTest,     'test'),
         unittest.makeSuite(FitPageTest.FitPageTest,                       'test'),
         unittest.makeSuite(FittingOptionsTest.FittingOptionsTest,         'test'),
+        unittest.makeSuite(InvariantPerspectiveTest.InvariantPerspectiveTest,
+                           'test'),
+        unittest.makeSuite(InvariantDetailsTest.InvariantDetailsTest, 'test'),
      )
     return unittest.TestSuite(suites)
 
