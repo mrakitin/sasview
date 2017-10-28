@@ -249,7 +249,9 @@ def updateModelItemWithPlot(item, update_data, name=""):
         plot_item = item.child(index)
         if plot_item.isCheckable():
             plot_data = plot_item.child(0).data().toPyObject()
-            if plot_data.id is not None and plot_data.id == py_update_data.id:
+            print 'title', plot_data.title, 'name', plot_data.name
+            if (plot_data.id is not None and plot_data.id == py_update_data.id) or \
+                    (plot_data.title is not None and plot_data.title == py_update_data.title):
                 # replace data section in item
                 plot_item.child(0).setData(update_data)
                 plot_item.setText(name)
@@ -358,13 +360,24 @@ def plotsFromCheckedItems(model_item):
     # Iterate over model looking for items with checkboxes
     for index in range(model_item.rowCount()):
         item = model_item.item(index)
+
         if item.isCheckable() and item.checkState() == QtCore.Qt.Checked:
             # TODO: assure item type is correct (either data1/2D or Plotter)
             plot_data.append((item, item.child(0).data().toPyObject()))
+            # list_children = []
+            # for index_2 in range(item.rowCount()):
+            #     item_2 = item.child(index_2)
+            #     if item_2 and item_2.isCheckable() and item_2.checkState() == QtCore.Qt.Checked:
+            #         list_children.append(item.child(index_2).child(0).data().toPyObject().title)
+
         # Going 1 level deeper only
+
+        # print list_children
         for index_2 in range(item.rowCount()):
             item_2 = item.child(index_2)
             if item_2 and item_2.isCheckable() and item_2.checkState() == QtCore.Qt.Checked:
+                print item_2.child(0).data().toPyObject().title
+
                 # TODO: assure item type is correct (either data1/2D or Plotter)
                 plot_data.append((item_2, item_2.child(0).data().toPyObject()))
 

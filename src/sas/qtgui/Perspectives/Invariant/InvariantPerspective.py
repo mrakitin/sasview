@@ -73,10 +73,15 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         self._low_guinier = True
         self._low_fit = False
         self._low_power_value = False
+        self._low_points = NPOINTS_Q_INTERP
+        self._low_power_value = DEFAULT_POWER_LOW
+
 
         self._high_extrapolate = False
         self._high_power_value = False
         self._high_fit = False
+        self._high_points = NPOINTS_Q_INTERP
+        self._high_power_value = DEFAULT_POWER_LOW
 
         # no reason to have this widget resizable
         self.setFixedSize(self.minimumSizeHint())
@@ -220,13 +225,14 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
     def plotResult(self, model):
         """ Plot output of calculation
         """
-        self.mapper.toFirst()
+
         # Set the button back to available
         self.cmdCalculate.setEnabled(True)
         self.cmdCalculate.setText("Calculate")
         self.cmdStatus.setEnabled(True)
 
         self.model = model
+        self.mapper.toFirst()
         self._data = GuiUtils.dataFromItem(self._model_item)
 
         # Send the modified model item to DE for keeping in the model
@@ -442,13 +448,22 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         self.model.itemChanged.connect(self.modelChanged)
 
         # update model from gui editing by users
-        self.txtBackgd.editingFinished.connect(self.updateFromGui)
+        self.txtBackgd.textChanged.connect(self.updateFromGui)
 
-        self.txtScale.editingFinished.connect(self.updateFromGui)
+        self.txtScale.textChanged.connect(self.updateFromGui)
 
-        self.txtContrast.editingFinished.connect(self.updateFromGui)
+        self.txtContrast.textChanged.connect(self.updateFromGui)
 
-        self.txtPorodCst.editingFinished.connect(self.updateFromGui)
+        self.txtPorodCst.textChanged.connect(self.updateFromGui)
+
+        self.txtPowerLowQ.textChanged.connect(self.updateFromGui)
+
+        self.txtPowerHighQ.textChanged.connect(self.updateFromGui)
+
+        self.txtNptsLowQ.textChanged.connect(self.updateFromGui)
+
+        self.txtNptsHighQ.textChanged.connect(self.updateFromGui)
+
 
         # check values of n_points compared to distribution length
         if self.txtNptsLowQ.isEnabled():
@@ -513,6 +528,35 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         elif self.sender().objectName() == 'txtScale':
             self._scale = float(self.sender().text())
             self.model.setItem(WIDGETS.W_SCALE, item)
+
+        elif self.sender().objectName() == 'txtPowerLowQ':
+            self._low_power_value = int(self.sender().text())
+            self.model.setItem(WIDGETS.W_LOWQ_POWER_VALUE, item)
+
+        elif self.sender().objectName() == 'txtPowerHighQ':
+            self._high_power_value = int(self.sender().text())
+            self.model.setItem(WIDGETS.W_HIGHQ_POWER_VALUE, item)
+
+        elif self.sender().objectName() == 'txtNptsLowQ':
+            self._low_points = int(self.sender().text())
+            self.model.setItem(WIDGETS.W_NPTS_LOWQ, item)
+
+        elif self.sender().objectName() == 'txtNptsHighQ':
+            self._high_points = int(self.sender().text())
+            self.model.setItem(WIDGETS.W_NPTS_HIGHQ, item)
+
+
+        print 'before mapper'
+        print 'LOW POINTS', self._low_points
+        print 'txtPowerLowQ', self.txtPowerLowQ.text()
+
+        self.mapper.toFirst()
+
+        print 'after mapper'
+        print 'LOW POINTS', self._low_points
+        print 'txtPowerLowQ', self.txtPowerLowQ.text()
+
+
 
     def lowGuinierAndPowerToggle(self, toggle):
         """ Guinier and Power radio buttons cannot be selected at the same time
