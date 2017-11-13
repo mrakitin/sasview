@@ -95,6 +95,61 @@ class GuiUtilsTest(unittest.TestCase):
         self.assertEqual(list_from_item[1].toPyObject(), test_list[1])
         self.assertEqual(list_from_item[2].toPyObject(), test_list[2])
 
+    def testUpdateModelItemStatus(self):
+        """
+        Test function to unchek model item accoring to status of Low- or
+        High-Q checkboxes in Invariant Panel
+        """
+        # Mockup data
+        test_list0 = "FRIDAY"
+        test_list1 = "SATURDAY"
+        test_list2 = "MONDAY"
+
+        # Main item ("file")
+        checkbox_model = QtGui.QStandardItemModel()
+
+        checkbox_item = QtGui.QStandardItem(True)
+        checkbox_item.setCheckable(True)
+        checkbox_item.setCheckState(QtCore.Qt.Checked)
+        checkbox_item.setText('File')
+
+        test_item0 = QtGui.QStandardItem()
+        test_item0.setData(QtCore.QVariant(test_list0))
+        test_item0.setText('title_item0')
+
+        # Checked item 1
+        test_item1 = QtGui.QStandardItem(True)
+        test_item1.setCheckable(True)
+        test_item1.setText('title_item1')
+        test_item1.setCheckState(QtCore.Qt.Checked)
+        object_item = QtGui.QStandardItem()
+        object_item.setData(QtCore.QVariant(test_list1))
+        test_item1.setChild(0, object_item)
+
+        checkbox_item.setChild(0, test_item0)
+        checkbox_item.appendRow(test_item1)
+
+        # Unchecked item 2
+        test_item2 = QtGui.QStandardItem(True)
+        test_item2.setCheckable(True)
+        test_item2.setText('title_item2')
+        test_item2.setCheckState(QtCore.Qt.Unchecked)
+        object_item = QtGui.QStandardItem()
+        object_item.setData(QtCore.QVariant(test_list2))
+        test_item2.setChild(0, object_item)
+        checkbox_item.appendRow(test_item2)
+
+        checkbox_model.appendRow(checkbox_item)
+
+        status_ini_item1 = test_item1.checkState()
+        # uncheck item in File whose title is 'title_item1'
+        updateModelItemStatus(checkbox_model, 'File', 'title_item1', 0)
+
+        # see that status has changed
+        self.assertNotEqual(test_item1.checkState() , status_ini_item1)
+
+        self.assertEqual(test_item1.checkState(), 0)
+
     def testupdateModelItemWithPlot(self):
         """
         Test the QModelItem checkbox update method

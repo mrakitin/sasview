@@ -18,7 +18,6 @@ import sas.qtgui.Utilities.GuiUtils as GuiUtils
 
 # import sas.qtgui.Plotting.PlotHelper as PlotHelper
 
-
 # local
 from UI.TabbedInvariantUI import Ui_tabbedInvariantUI
 from InvariantDetails import DetailsDialog
@@ -35,12 +34,9 @@ NPOINTS_Q_INTERP = 10
 # Default power law for interpolation
 DEFAULT_POWER_LOW = 4
 
-
+# Background of line edits if settings OK or wrong
 BG_WHITE = "background-color: rgb(255, 255, 255);"
 BG_RED = "background-color: rgb(244, 170, 164);"
-
-# error if background, scale empty, npts pts for extrapolation
-# TODO: validator nb points = integers
 
 class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
     # The controller which is responsible for managing signal slots connections
@@ -75,7 +71,6 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         self._low_power_value = False
         self._low_points = NPOINTS_Q_INTERP
         self._low_power_value = DEFAULT_POWER_LOW
-
 
         self._high_extrapolate = False
         self._high_power_value = False
@@ -128,9 +123,6 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         # Set up the mapper
         self.setupMapper()
 
-        self.chkLowQ.setChecked(True)
-        self.chkLowQ.setChecked(False)
-
         # validator: double
         self.txtBackgd.setValidator(QtGui.QDoubleValidator())
         self.txtContrast.setValidator(QtGui.QDoubleValidator())
@@ -138,17 +130,18 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         self.txtPorodCst.setValidator(QtGui.QDoubleValidator())
 
         # validator: integer number
-        validat_regex_int = QtCore.QRegExp('^[+]?(\d+[.][0]*)$')
-        self.txtNptsLowQ.setValidator(QtGui.QRegExpValidator(validat_regex_int,
+        valid_regex_int = QtCore.QRegExp('^[+]?(\d+[.][0]*)$')
+        self.txtNptsLowQ.setValidator(QtGui.QRegExpValidator(valid_regex_int,
                                                              self.txtNptsLowQ))
-        self.txtNptsHighQ.setValidator(QtGui.QRegExpValidator(validat_regex_int,
+        self.txtNptsHighQ.setValidator(QtGui.QRegExpValidator(valid_regex_int,
                                                              self.txtNptsHighQ))
-        self.txtPowerLowQ.setValidator(QtGui.QRegExpValidator(validat_regex_int,
+        self.txtPowerLowQ.setValidator(QtGui.QRegExpValidator(valid_regex_int,
                                                              self.txtPowerLowQ))
-        self.txtPowerHighQ.setValidator(QtGui.QRegExpValidator(validat_regex_int,
+        self.txtPowerHighQ.setValidator(QtGui.QRegExpValidator(valid_regex_int,
                                                              self.txtPowerHighQ))
 
     def enabling(self):
+        """ """
         self.cmdStatus.setEnabled(True)
 
     def setClosable(self, value=True):
@@ -169,10 +162,6 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
             event.ignore()
             # Maybe we should just minimize
             self.setWindowState(QtCore.Qt.WindowMinimized)
-
-    def communicator(self):
-        """ Getter for the communicator """
-        return self.communicate
 
     def updateFromModel(self):
         """ Update the globals based on the data in the model """
@@ -223,9 +212,7 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         pass
 
     def plotResult(self, model):
-        """ Plot output of calculation
-        """
-
+        """ Plot result of calculation """
         # Set the button back to available
         self.cmdCalculate.setEnabled(True)
         self.cmdCalculate.setText("Calculate")
@@ -262,10 +249,9 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         temp_data = copy.deepcopy(self._data)
 
         # Prepare the invariant object
-        inv = invariant.InvariantCalculator(data=temp_data, #self._data,
+        inv = invariant.InvariantCalculator(data=temp_data,
                                             background=self._background,
                                             scale=self._scale)
-
         if self._low_extrapolate:
 
             function_low = "power_law"
@@ -286,8 +272,6 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
                                   function=function_low,
                                   power=self._high_power_value)
         # Compute invariant
-        # TODO: logic
-        # display info, update lineedits, don't run extrapolations etc.
         calculation_failed = False
 
         try:
@@ -346,13 +330,23 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
 
                 # Convert the data into plottable
                 extrapolated_data = self._manager.createGuiData(extrapolated_data)
+
                 extrapolated_data.name = title
                 extrapolated_data.title = title
+
+                # copy labels and units of axes for plotting
+                extrapolated_data._xaxis = temp_data._xaxis
+                extrapolated_data._xunit = temp_data._xunit
+                extrapolated_data._yaxis = temp_data._yaxis
+                extrapolated_data._yunit = temp_data._yunit
 
                 # Add the plot to the model item
                 variant_item = QtCore.QVariant(extrapolated_data)
                 # This needs to run in the main thread
-                reactor.callFromThread(GuiUtils.updateModelItemWithPlot, self._model_item, variant_item, title)
+                reactor.callFromThread(GuiUtils.updateModelItemWithPlot,
+                                       self._model_item,
+                                       variant_item,
+                                       title)
 
             if self._high_extrapolate:
                 # for presentation in InvariantDetails
@@ -371,6 +365,12 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
                 high_out_data = self._manager.createGuiData(high_out_data)
                 high_out_data.name = title
                 high_out_data.title = title
+
+                # copy labels and units of axes for plotting
+                high_out_data._xaxis = temp_data._xaxis
+                high_out_data._xunit = temp_data._xunit
+                high_out_data._yaxis = temp_data._yaxis
+                high_out_data._yunit = temp_data._yunit
 
                 # Add the plot to the model item
                 # variant_item = QtCore.QVariant(self._plotter)
@@ -412,7 +412,8 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         return "Invariant panel"
 
     def onStatus(self):
-        """ Display Invariant Details panel when clicking on Status button
+        """
+        Display Invariant Details panel when clicking on Status button
         """
         self.detailsDialog.setModel(self.model)
         self.detailsDialog.showDialog()
@@ -432,10 +433,13 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         self.cmdHelp.clicked.connect(self.onHelp)
 
         self.chkLowQ.stateChanged.connect(self.stateChanged)
-        self.chkHighQ.stateChanged.connect(self.stateChanged)
+        self.chkLowQ.stateChanged.connect(self.checkQExtrapolatedData)
 
-        # some slot for the 2 following radio buttons since they are
-        # not auto-exclusive (to allow Fit and Fix radiobuttons to be)
+        self.chkHighQ.stateChanged.connect(self.stateChanged)
+        self.chkHighQ.stateChanged.connect(self.checkQExtrapolatedData)
+
+        # slots for the Guinier and PowerLaw radio buttons at low Q
+        # since they are not auto-exclusive
         self.rbGuinier.toggled.connect(self.lowGuinierAndPowerToggle)
 
         self.rbPowerLawLowQ.toggled.connect(self.lowGuinierAndPowerToggle)
@@ -463,7 +467,6 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
 
         self.txtNptsHighQ.textChanged.connect(self.updateFromGui)
 
-
         # check values of n_points compared to distribution length
         if self.txtNptsLowQ.isEnabled():
             self.txtNptsLowQ.textChanged.connect(self.checkLength)
@@ -472,8 +475,9 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
             self.txtNptsHighQ.textChanged.connect(self.checkLength)
 
     def stateChanged(self):
-        """ Catch modifications from low- and high-Q extrapolation check
-        boxes """
+        """
+        Catch modifications from low- and high-Q extrapolation check boxes
+        """
         sender = self.sender()
 
         itemf = QtGui.QStandardItem(str(sender.isChecked()).lower())
@@ -484,8 +488,10 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
             self.model.setItem(WIDGETS.W_ENABLE_HIGHQ, itemf)
 
     def checkLength(self):
-        """ Validators of number of points for extrapolation.
-         Error if it is larger than the distribution length """
+        """
+        Validators of number of points for extrapolation.
+        Error if it is larger than the distribution length
+        """
         if self._data:
             if len(self._data.x) < int(self.sender().text()):
                 self.sender().setStyleSheet(QtCore.QString(BG_RED))
@@ -509,11 +515,28 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
             self._high_extrapolate = toggle
             self.highQToggle(toggle)
 
+    def checkQExtrapolatedData(self):
+        """
+        Match status of low or high-Q extrapolated data checkbox in
+        DataExplorer with low or high-Q extrapolation checkbox in invariant
+        panel
+        """
+        # name to search in DataExplorer
+        if 'Low' in str(self.sender().text()):
+            name = "Low-Q extrapolation"
+        if 'High' in str(self.sender().text()):
+            name = "High-Q extrapolation"
+
+        GuiUtils.updateModelItemStatus(self._manager.filesWidget.model,
+                                       self._path, name,
+                                       self.sender().checkState())
+
     def updateFromGui(self):
         """ Update model when new user inputs """
         possible_senders = ['txtBackgd', 'txtContrast', 'txtPorodCst',
                             'txtScale', 'txtPowerLowQ', 'txtPowerHighQ',
                             'txtNptsLowQ', 'txtNptsHighQ']
+
         related_widgets = [WIDGETS.W_BACKGROUND, WIDGETS.W_CONTRAST,
                            WIDGETS.W_POROD_CST, WIDGETS.W_SCALE,
                            WIDGETS.W_LOWQ_POWER_VALUE, WIDGETS.W_HIGHQ_POWER_VALUE,
@@ -528,16 +551,18 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         item = QtGui.QStandardItem(self.sender().text())
 
         index_elt = possible_senders.index(self.sender().objectName())
-        print index_elt
+
+        self.model.setItem(related_widgets[index_elt], item)
 
         related_internal_values[index_elt] = float(self.sender().text())
-        self.model.setItem(related_widgets[index_elt], item)
+
+        # print possible_senders[index_elt], related_internal_values[index_elt]
 
         self.mapper.toFirst()
 
-
     def lowGuinierAndPowerToggle(self, toggle):
-        """ Guinier and Power radio buttons cannot be selected at the same time
+        """
+        Guinier and Power radio buttons cannot be selected at the same time
         If Power is selected, Fit and Fix radio buttons are visible and
         Power line edit can be edited if Fix is selected
         """
@@ -586,7 +611,7 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         self.txtPowerHighQ.setEnabled(clicked)
 
     def lowQToggle(self, clicked):
-        """ Disable/enable Low Q extrapolation """
+        """ Disable / enable Low Q extrapolation """
         self.rbGuinier.setEnabled(clicked)
         self.rbPowerLawLowQ.setEnabled(clicked)
         self.txtNptsLowQ.setEnabled(clicked)
@@ -601,6 +626,7 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
                                     and not self._low_fit)
 
     def setupModel(self):
+        """ """
         # filename
         item = QtGui.QStandardItem(self._path)
         self.model.setItem(WIDGETS.W_FILENAME, item)
@@ -705,8 +731,6 @@ class InvariantWindow(QtGui.QDialog, Ui_tabbedInvariantUI):
         Pass it over to the calculator
         """
         assert data_item is not None
-
-        # print data_item[0].text()
 
         if self.txtName.text() == data_item[0].text():
             logging.info('This file is already loaded in Invariant panel.')
