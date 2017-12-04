@@ -24,7 +24,7 @@ else:
     LIBLOC = os.path.join(PYTHON_LOC,'Library','bin')
     UPX=True
 
-SCRIPT_TO_SOURCE = 'sasview.py'
+SCRIPT_TO_SOURCE = 'sasview_gui.py'
 
 # Warning! pyinstaller/py2exe etc. don't have the __file__ attribute
 # WORK_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -41,14 +41,16 @@ def add_binary(binary):
     return (os.path.join(LIBLOC,binary),'.')
 
 # ADDITIONAL DATA ############################################################
-datas = [('images', 'images')]
+datas = [(os.path.join('..', 'src', 'sas', 'sasview', 'images'), 'images')]
+datas.append((os.path.join('..', 'src', 'sas', 'sasview', 'media'),'media'))
+datas.append((os.path.join('..', 'src', 'sas', 'sasview', 'test'),'test'))
+datas.append((os.path.join('..', 'docs', 'sphinx-docs', 'build', 'html'), os.path.join('sas', 'sasview','doc')))
 
-datas.append(('media','media'))
-datas.append(('test','test'))
-datas.append(('custom_config.py','.'))
-datas.append(('local_config.py','.'))
-datas.append(('wxcruft.py','.'))
-datas.append(('welcome_panel.py','.'))
+sasview_path_dst = os.path.join('sas', 'sasview')
+datas.append((os.path.join('..', 'src', 'sas', 'sasview', 'custom_config.py'), sasview_path_dst))
+datas.append((os.path.join('..', 'src', 'sas', 'sasview', 'local_config.py'), sasview_path_dst))
+datas.append((os.path.join('..', 'src', 'sas', 'sasview', 'wxcruft.py'), sasview_path_dst))
+datas.append((os.path.join('..', 'src', 'sas', 'sasview', 'welcome_panel.py'), sasview_path_dst))
 
 # TODO
 # NEED BETTER WAY TO DEAL WITH THESE RELATIVE PATHS
@@ -80,9 +82,9 @@ elif os.path.exists(os.path.join(LIBLOC, LIBPREFIX + 'numpy-atlas.' + LIBSUFFIX)
 else:
     raise Exception("No numerical library for numpy found.")
 
-import sas.sascalc.dataloader.readers
-f = os.path.join(sas.sascalc.dataloader.readers.get_data_path(), 'defaults.json')
-datas.append((f, '.'))
+#import sas.sascalc.dataloader.readers
+#f = os.path.join(sas.sascalc.dataloader.readers.get_data_path(), 'defaults.json')
+#datas.append((f, '.'))
 
 # Add a custom pyopencl hook, as described in
 # https://github.com/pyinstaller/pyinstaller/issues/2130
@@ -135,7 +137,7 @@ excludes.append('sasmodels')
 # HIDDEN MODULES ############################################################
 hiddenimports = [
  'periodictable.core',
- 'sasmodels.core',
+ #'sasmodels.core',
  'pyopencl',
  'tinycc',
  'xhtml2pdf'
@@ -162,7 +164,7 @@ exe = EXE(pyz,
           name='sasview',
           debug=False,
           upx=UPX,
-          icon=os.path.join("images","ball.ico"),
+          icon=os.path.join("..", "src", "sas", "sasview", "images","ball.ico"),
           version="version.txt",
           console=False )
 

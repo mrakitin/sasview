@@ -191,7 +191,7 @@ def write_tasks():
     msg += """GroupDescription: "{cm:AdditionalIcons}";\n"""
     return msg
 
-dist_path = "dist"
+dist_path = "dist/sasview"
 def write_file():
     """
     copy some data files
@@ -199,13 +199,13 @@ def write_file():
     msg = "\n\n[Files]\n"
     msg += """Source: "%s\%s";\t""" % (dist_path, str(APPLICATION))
     msg += """DestDir: "{app}";\tFlags: ignoreversion\n"""
-    msg += """Source: "dist\*";\tDestDir: "{app}";\t"""
+    msg += """Source: "dist\sasview\*";\tDestDir: "{app}";\t"""
     msg += """Flags: ignoreversion recursesubdirs createallsubdirs\n"""
-    msg += """Source: "dist\plugin_models\*";\tDestDir: "{userdesktop}\..\.sasview\plugin_models";\t"""
+    msg += """Source: "dist\sasview\plugin_models\*";\tDestDir: "{userdesktop}\..\.sasview\plugin_models";\t"""
     msg += """Flags: recursesubdirs createallsubdirs\n"""
-    msg += """Source: "dist\compiled_models\*";\tDestDir: "{userdesktop}\..\.sasmodels\compiled_models";\t"""
+    msg += """Source: "dist\sasview\compiled_models\*";\tDestDir: "{userdesktop}\..\.sasmodels\compiled_models";\t"""
     msg += """Flags: recursesubdirs createallsubdirs\n"""
-    msg += """Source: "dist\config\custom_config.py";\tDestDir: "{userdesktop}\..\.sasview\config";\t"""
+    msg += """Source: "dist\sasview\sas\sasview\custom_config.py";\tDestDir: "{userdesktop}\..\.sasview\config";\t""" 
     msg += """Flags: recursesubdirs createallsubdirs\n"""
     #msg += """Source: "dist\default_categories.json";    DestDir: "{userdesktop}\..\.sasview";\t"""
     #msg += """DestName: "categories.json";\n"""
