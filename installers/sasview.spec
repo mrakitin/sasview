@@ -76,7 +76,10 @@ datas.append((os.path.join('compiled_models','compiled_models'),'compiled_models
 # These depend on whether we have MKL or Atlas numpy
 if os.path.exists(os.path.join(LIBLOC, LIBPREFIX + 'mkl_core.' + LIBSUFFIX)):
     datas.append(add_binary(LIBPREFIX + 'mkl_avx2.' + LIBSUFFIX))
-    datas.append(add_binary(LIBPREFIX + 'mkl_def.' + LIBSUFFIX))
+    if os.name == 'nt':
+        datas.append(add_binary(LIBPREFIX + 'mkl_def.' + LIBSUFFIX))
+    if sys.platform == 'darwin':
+        datas.append(add_binary(LIBPREFIX + 'mkl_core.' + LIBSUFFIX))
 elif os.path.exists(os.path.join(LIBLOC, LIBPREFIX + 'numpy-atlas.' + LIBSUFFIX)):
     datas.append(add_binary(LIBPREFIX + 'numpy-atlas.' + LIBSUFFIX))
 else:
