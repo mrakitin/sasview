@@ -84,14 +84,8 @@ cd Output
 xcopy setupSasView.exe %WORKSPACE%\sasview\dist
 
 :: :: SASVIEW PYLINT #####################################################
-:: cd %WORKSPACE%\sasview
-:: %PYLINT% --rcfile "build_tools/pylint.rc" -f parseable sasview-install/sasview.egg/sas sasview > test/sasview.txt
+cd %WORKSPACE%\sasview
+%PYLINT% --rcfile "build_tools/pylint.rc" -f parseable sasview-install/sasview.egg/sas sasview > test/sasview.txt
 
 :: GO BACK ############################################################
 cd %WORKSPACE%
-
-
-:: REMOVE INSTALLATION ################################################
-::pip uninstall -y sasview
-::pip uninstall -y sasmodels
-::pip uninstall -y tinycc
