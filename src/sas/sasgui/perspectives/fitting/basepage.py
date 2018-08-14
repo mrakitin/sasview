@@ -640,10 +640,9 @@ class BasicPage(ScrolledPanel, PanelBase):
 
         # get the strings for report
         report_str, text_str = self.state.report(fig_urls=refs)
-
         # Show the dialog
         report_list = [report_str, text_str, images]
-        dialog = ReportDialog(report_list, None, wx.ID_ANY, "")
+        dialog = ReportDialog(report_list, imgRAM, refs, None, wx.ID_ANY, "")
         dialog.Show()
 
     def _build_plots_for_report(self, figs, canvases):
@@ -676,7 +675,6 @@ class BasicPage(ScrolledPanel, PanelBase):
             name = 'img_fit%s.png' % ind
             refs.append('memory:' + name)
             imgRAM.AddFile(name, canvas.bitmap, wx.BITMAP_TYPE_PNG)
-
             # append figs
             images.append(fig)
 
@@ -1471,9 +1469,11 @@ class BasicPage(ScrolledPanel, PanelBase):
             # _update_paramv_on_fit() has been called already or
             # we need to check here ourselves.
             if not is_modified:
-                is_modified = (self._check_value_enter(self.fittable_param)
-                               or self._check_value_enter(self.fixed_param)
-                               or self._check_value_enter(self.parameters))
+                is_modified = self._check_value_enter(self.fittable_param)
+                is_modified = self._check_value_enter(
+                    self.fixed_param) or is_modified
+                is_modified = self._check_value_enter(
+                    self.parameters) or is_modified
 
             # Here we should check whether the boundaries have been modified.
             # If qmin and qmax have been modified, update qmin and qmax and
@@ -1535,9 +1535,9 @@ class BasicPage(ScrolledPanel, PanelBase):
                     self._manager.page_finder[self.uid].set_fit_data(
                         data=[self.data])
             # Check the values
-            is_modified = (self._check_value_enter(self.fittable_param)
-                           or self._check_value_enter(self.fixed_param)
-                           or self._check_value_enter(self.parameters))
+            is_modified = self._check_value_enter(self.fittable_param)
+            is_modified = self._check_value_enter(self.fixed_param) or is_modified
+            is_modified = self._check_value_enter(self.parameters) or is_modified
 
             # If qmin and qmax have been modified, update qmin and qmax and
             # Here we should check whether the boundaries have been modified.
@@ -2323,7 +2323,8 @@ class BasicPage(ScrolledPanel, PanelBase):
                     self.model.details[name][1:3] = low, high
 
             # Update value in model if it has changed
-            if value != self.model.getParam(name):
+            if (value != self.model.getParam(name) or
+                    (np.isnan(value) and np.isnan(self.model.getParam(name)))):
                 self.model.setParam(name, value)
                 is_modified = True
 
@@ -2550,6 +2551,7 @@ class BasicPage(ScrolledPanel, PanelBase):
             self._update_paramv_on_fit()
             # draw
             self._draw_model()
+            self.Layout()
             self.Refresh()
         except Exception:
             logger.error(traceback.format_exc())
