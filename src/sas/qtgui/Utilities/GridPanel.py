@@ -58,6 +58,7 @@ class BatchOutputPanel(QtWidgets.QMainWindow, Ui_GridPanelUI):
             # Set a table tooltip describing the model
             model_name = output_data[0][0].model.id
             self.tabWidget.setTabToolTip(0, model_name)
+        self.tabWidget.currentChanged.connect(self.onTabChanged)
 
     def closeEvent(self, event):
         """
@@ -194,10 +195,6 @@ class BatchOutputPanel(QtWidgets.QMainWindow, Ui_GridPanelUI):
         Plot selected fits by sending signal to the parent
         """
         rows = [s.row() for s in self.currentTable().selectionModel().selectedRows()]
-        if not rows:
-            msg = "Nothing to plot!"
-            self.parent.communicate.statusBarUpdateSignal.emit(msg)
-            return
         data = self.dataFromTable(self.currentTable())
         # data['Data'] -> ['filename1', 'filename2', ...]
         # look for the 'Data' column and extract the filename
@@ -209,6 +206,23 @@ class BatchOutputPanel(QtWidgets.QMainWindow, Ui_GridPanelUI):
             except (IndexError, AttributeError):
                 # data messed up.
                 return
+
+    def onSelectionChanged(self):
+        """
+        Deactivates plot if no rows are selected
+        """
+        selected_rows = len(self.currentTable().selectionModel().selectedRows())
+        if selected_rows == 0:
+            self.cmdPlot.setEnabled(False)
+        else:
+            self.cmdPlot.setEnabled(True)
+
+    def onTabChanged(self):
+        """
+        Resets settings when tab is change to avoid problems with plotting
+        """
+        self.currentTable().selectRow(0)
+        self.cmdPlot.setEnabled(True)
 
     @classmethod
     def dataFromTable(cls, table):
@@ -400,6 +414,8 @@ class BatchOutputPanel(QtWidgets.QMainWindow, Ui_GridPanelUI):
 
         # resize content
         widget.resizeColumnsToContents()
+        widget.selectRow(0)
+        widget.itemSelectionChanged.connect(self.onSelectionChanged)
 
     @classmethod
     def writeBatchToFile(cls, data, tmpfile, details=""):
